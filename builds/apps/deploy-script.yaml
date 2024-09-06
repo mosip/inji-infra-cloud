@@ -1,0 +1,80 @@
+steps:
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'get-credentials'
+  args: ['container', 'clusters', 'get-credentials', '${_CLUSTER_NAME_}', '--project=${_PROJECT_ID_}', '--region=${_REGION_}', '--internal-ip']
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'git'
+  id: 'clone-rc-repo'
+  args: ['clone', 'https://github.com/tejash-jl/gcp-devops.git']
+  dir: 'sunbird-rc'
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'deploy-rc'
+  entrypoint: 'bash'
+  dir: 'sunbird-rc/gcp-devops'
+  waitFor: 'clone-rc-repo'
+  args:
+    - -c
+    - |
+      rm deployments/schemas/*
+      cp -rf ../../deployments/.registry.env .env
+      cp ../../deployments/schemas/registry/* deployments/schemas/
+      gcloud builds submit --region=${_REGION_} --config="./builds/apps/deploy-script.yaml" --project=${_PROJECT_ID_} --substitutions=_PROJECT_ID_=${_PROJECT_ID_},_REGION_=${_REGION_},_CLUSTER_NAME_=${_CLUSTER_NAME_},_LOG_BUCKET_=${_LOG_BUCKET_},_DOMAIN_=${_FR_DOMAIN_},_EMAIL_ID_=${_EMAIL_ID_},_SERVICE_ACCOUNT_=${_SERVICE_ACCOUNT_},_SECRET_NAME_=${_SECRET_NAME_},_DB_NAME_=${_DB_NAME_},_LB_NAME_=${_LB_NAME_},_NAME_=${_NAME_},_KEYCLOAK_DOMAIN_="http://registry-keycloak-service:8080"
+      echo ${_ESIGNET_DOMAIN_} ${_REDIS_NAME_}
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'configure-rc'
+  entrypoint: 'bash'
+  dir: 'sunbird-rc/gcp-devops'
+  waitFor: 'deploy-rc'
+  args:
+    - -c
+    - |
+      kubectl get cm -n registry registry-config -o yaml | sed -e 's|WEB_DID_BASE_URL: https://example.com/identifier|WEB_DID_BASE_URL: ${_WEB_DID_BASE_URL_}|' | kubectl apply -f - -n registry
+      kubectl rollout restart deploy registry-identity-service -n registry
+      echo ${_FR_DOMAIN_}
+      echo ${_ESIGNET_DOMAIN_}
+      echo ${_EMAIL_ID_}
+      echo ${_SECRET_NAME_}
+      echo ${_DB_NAME_}
+      echo ${_REDIS_NAME_}
+      echo ${_LB_NAME_}
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'git'
+  id: 'clone-esignet-repo'
+  args: ['clone', 'https://github.com/tejash-jl/eSignet-Stack.git']
+  dir: 'esignet'
+  waitFor: 'configure-rc'
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'deploy-esignet'
+  entrypoint: 'bash'
+  dir: 'esignet/eSignet-Stack'
+  waitFor: 'clone-esignet-repo'
+  args:
+    - -c
+    - |
+      cp -rf ../../deployments/esignet-local.properties deployments/configs/esignet.properties
+      gcloud builds submit --region=${_REGION_} --config="./builds/apps/deploy-script.yaml" --project=${_PROJECT_ID_} --substitutions=_PROJECT_ID_=${_PROJECT_ID_},_REGION_=${_REGION_},_CLUSTER_NAME_=${_CLUSTER_NAME_},_LOG_BUCKET_=${_LOG_BUCKET_},_DOMAIN_=${_ESIGNET_DOMAIN_},_EMAIL_ID_=${_EMAIL_ID_},_SERVICE_ACCOUNT_=${_SERVICE_ACCOUNT_},_SECRET_NAME_=${_SECRET_NAME_},_DB_NAME_=${_DB_NAME_},_LB_NAME_=${_LB_NAME_},_NAME_=${_NAME_},_ENABLE_MOCK_=false,_REDIS_NAME_=${_REDIS_NAME_},_SKIP_INGRESS_="true"
+      echo ${_FR_DOMAIN_}
+      echo ${_WEB_DID_BASE_URL_}
+      sh deployments/scripts/config-init.sh ${_ESIGNET_DOMAIN_} ${_DB_NAME_} ${_SECRET_NAME_} ${_REDIS_NAME_} ${_REGION_} false ${_FR_DOMAIN_}
+tags: ['cloud-builders-community']
+serviceAccount: "projects/${_PROJECT_ID_}/serviceAccounts/${_SERVICE_ACCOUNT_}"
+logsBucket: "gs://${_LOG_BUCKET_}"
+substitutions:
+  _PROJECT_ID_: ''
+  _REGION_: ''
+  _CLUSTER_NAME_: 'inji-dev-cluster'
+  _FR_DOMAIN_: ''
+  _ESIGNET_DOMAIN_: ''
+  _LOG_BUCKET_: ''
+  _EMAIL_ID_: ''
+  _SERVICE_ACCOUNT_: ''
+  _SECRET_NAME_: 'inji-dev'
+  _DB_NAME_: 'inji-dev-pgsql'
+  _REDIS_NAME_: 'inji-dev-redis'
+  _LB_NAME_: 'inji-dev-glb-lb-ip'
+  _NAME_: 'inji-dev'
+  _WEB_DID_BASE_URL_: 'https://tejash-jl.github.io/DID-Resolve'
+options:
+    dynamicSubstitutions: true
+    pool:
+      name: 'projects/${_PROJECT_ID_}/locations/${_REGION_}/workerPools/${_NAME_}-cloudbuild-private-worker-pool'

@@ -152,6 +152,10 @@ dbInfo = [
   {
     name         = "identity"
     instanceName = "inji-dev-pgsql"
+  },
+  {
+    name         = "inji_certify"
+    instanceName = "inji-dev-pgsql"
   }
 ]
 

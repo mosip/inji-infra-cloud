@@ -16,10 +16,25 @@ spec:
     - host: DOMAIN
       http:
         paths:
-          - path: /
-            pathType: ImplementationSpecific
+          - path: /v1/certify
+            pathType: Prefix
             backend:
               service:
                 name: inji-certify
                 port:
                   number: 80
+          - backend:
+              service:
+                name: file-store
+                port:
+                  number: 80
+            path: /mimoto-issuers-config.json
+            pathType: ImplementationSpecific
+          - path: /residentmobileapp
+            pathType: Prefix
+            backend:
+              service:
+                name: mimoto
+                port:
+                  number: 80
+ 

@@ -65,8 +65,8 @@ steps:
     - |
       set -a
       apt-get update
-      apt-get install jq wget -y 
-      wget https://github.com/mikefarah/yq/releases/download/v4.44.2/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq 
+      apt-get install jq wget -y
+      wget https://github.com/mikefarah/yq/releases/download/v4.44.2/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
       echo ${_FR_DOMAIN_}
       echo ${_WEB_DID_BASE_URL_}
       echo ${_FR_DOMAIN_}
@@ -83,7 +83,7 @@ steps:
       sqlPass=$(gcloud secrets versions access latest --secret ${_SECRET_NAME_}) &&
       kubectl -n esignet delete secret db-common-secrets
       helm -n esignet install postgres-init-certify mosip/postgres-init -f deployments/configs/db_init.yaml --version $postgres_init_helm_version --set databases.mosip_certify.host=$sqlIP --set image.repository=$postgres_init_docker_image --set image.tag=$postgres_init_docker_version --wait
-      
+
       sh deployments/scripts/certify-config-init.sh ${_ESIGNET_DOMAIN_} ${_DB_NAME_} ${_SECRET_NAME_} ${_REDIS_NAME_} ${_REGION_} false ${_FR_DOMAIN_}
       helm -n esignet template inji-certify mosip/inji-certify --version $certify_helm_version -f deployments/configs/certify-values.yaml --set image.repository=$certify_docker_image --set image.tag=$certify_docker_version > deploy.yaml
       yq  e -i 'select(di == 3).spec.template.spec.volumes += [{"name":"certify-properties","configMap":{"name":"certify-local-properties"}}]' deploy.yaml
@@ -93,6 +93,41 @@ steps:
       set +a
   waitFor:
     - 'deploy-esignet'
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'helm-inji-mosip-install'
+  entrypoint: 'bash'
+  args:
+    - -c
+    - |
+      set -a
+      apt-get update
+      apt-get install jq wget -y 
+      wget https://github.com/mikefarah/yq/releases/download/v4.44.2/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq 
+      echo ${_FR_DOMAIN_}
+      echo ${_WEB_DID_BASE_URL_}
+      echo ${_FR_DOMAIN_}
+      echo ${_ESIGNET_DOMAIN_}
+      echo ${_EMAIL_ID_}
+      echo ${_SECRET_NAME_}
+      echo ${_DB_NAME_}
+      echo ${_REDIS_NAME_}
+      echo ${_CLUSTER_NAME_}
+      echo ${_LB_NAME_}
+      export $(grep -v '^#' .env | xargs -d '\n')
+      helm repo add mosip https://mosip.github.io/mosip-helm
+      kubectl create ns inji
+      sh deployments/scripts/mosip-config-init.sh ${_ESIGNET_DOMAIN_} ${_DOMAIN_}
+      
+      helm -n esignet template mimoto mosip/mimoto --version $mimoto_helm_version -f deployments/configs/mimoto-values.yaml --set image.repository=$mimoto_docker_image --set image.tag=$mimoto_docker_version > deploy.yaml
+      yq e -i 'select(di == 3).spec.template.spec.volumes += [{"name":"mimoto-properties","configMap":{"name":"mimoto-local-properties"}}]' deploy.yaml
+      yq e -i 'select(di == 3).spec.template.spec.containers[0] += {"volumeMounts":[{"mountPath":"/home/mosip/mimoto-default.properties","name":"mimoto-properties","subPath":"mimoto-default.properties"},{"mountPath":"/home/mosip/mimoto-issuers-config.json","name":"mimoto-properties","subPath":"mimoto-issuers-config.json"}]}' deploy.yaml
+      yq e -i 'select(di == 3).spec.template.spec.containers[0] += {"ports":[{"name":"spring-service","containerPort":8099}]}' deploy.yaml
+      kubectl apply -f deploy.yaml -n esignet
+      kubectl apply -f deployments/configs/file-store.yml -n esignet
+      
+      set +a
+  waitFor:
+    - 'helm-inji-certify-install'
 tags: ['cloud-builders-community']
 serviceAccount: "projects/${_PROJECT_ID_}/serviceAccounts/${_SERVICE_ACCOUNT_}"
 logsBucket: "gs://${_LOG_BUCKET_}"

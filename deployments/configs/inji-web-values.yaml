@@ -1,0 +1,26 @@
+extraEnvVars:
+
+enable_insecure: false
+
+istio:
+  enabled: false
+
+serviceMonitor:
+  enabled: false
+
+metrics:
+  enabled: false
+
+extraEnvVarsCM:
+  - artifactory-share
+  - softhsm-share
+
+inji_web:
+  inji_web_port: '3004'
+  inji_web_service_host: 'mimoto.esignet'
+  configmaps:
+    injiweb-ui:
+      DEFAULT_THEME: ''
+      DEFAULT_LANG: 'en'
+      DEFAULT_FEVICON: 'favicon.ico'
+      DEFAULT_TITLE: 'Inji Web'

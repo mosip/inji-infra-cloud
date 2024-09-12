@@ -30,11 +30,26 @@ spec:
                   number: 80
             path: /mimoto-issuers-config.json
             pathType: ImplementationSpecific
-          - path: /residentmobileapp
+          - path: /v1/mimoto
             pathType: Prefix
             backend:
               service:
                 name: mimoto
                 port:
                   number: 80
+          - backend:
+              service:
+                name: injiweb
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
+          - backend:
+              service:
+                name: file-store
+                port:
+                  number: 80
+            path: /credential-template.html
+            pathType: ImplementationSpecific
+
  

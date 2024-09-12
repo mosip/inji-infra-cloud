@@ -27,6 +27,9 @@ spec:
             - mountPath: /usr/share/nginx/html/mimoto-issuers-config.json
               name: mimoto-properties
               subPath: mimoto-issuers-config.json
+            - mountPath: /usr/share/nginx/html/credential-template.html
+              name: mimoto-properties
+              subPath: credential-template.html
 
 ---
 apiVersion: v1

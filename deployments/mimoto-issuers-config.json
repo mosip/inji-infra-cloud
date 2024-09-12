@@ -65,11 +65,11 @@
         }
       ],
       "protocol": "OpenId4VCI",
-      "client_id": "esignet-sunbird-partner",
+      "client_id": "2yz7-j3xRzU3SODdoNgSGvO_cD8UijH3AIWRDAg1x-M",
       "client_alias": "esignet-sunbird-partner",
       "scopes_supported": ["sunbird_rc_insurance_vc_ldp"],
       "additional_headers": { "Accept": "application/json" },
-      ".well-known": "https://$ESIGNET_HOST/.well-known/openid-credential-issuer?version=v11",
+      ".well-known": "https://$INJI_HOST/v1/certify/issuance/.well-known/openid-credential-issuer?version=latest",
       "redirect_uri": "io.mosip.residentapp.inji://oauthredirect",
       "authorization_endpoint": "https://$ESIGNET_HOST/authorize",
       "authorization_audience": "https://$ESIGNET_HOST/v1/esignet/oauth/v2/token",
@@ -78,7 +78,8 @@
       "credential_endpoint": "https://$INJI_HOST/v1/certify/issuance/credential",
       "credential_type": ["VerifiableCredential", "InsuranceCredential"],
       "credential_audience": "https://$ESIGNET_HOST/v1/esignet",
-      "enabled": "true"
+      "enabled": "true",
+      "qr_code_type": "EmbeddedVC"
     }
   ]
 }

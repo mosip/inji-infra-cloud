@@ -8,6 +8,7 @@ export ESIGNET_HOST=$1
 export API_INTERNAL=$1
 export KEYCLOAK_URL=$1
 export FR_DOMAIN=$7
+export INJI_DOMAIN=$8
 export SOFTHSM_PIN=$(kubectl get secrets softhsm -n esignet -o jsonpath={.data.security-pin} | base64 --decode)
 export KAFKA_URL=kafka-cluster-kafka-bootstrap.kafka:9092
 export DB_HOST=$(gcloud sql instances describe $2 --format=json  | jq -r ".ipAddresses[0].ipAddress")

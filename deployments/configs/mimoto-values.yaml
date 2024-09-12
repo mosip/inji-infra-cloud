@@ -29,18 +29,18 @@ service:
 startupProbe:
   enabled: true
   httpGet:
-    path: /residentmobileapp/actuator/health
+    path: /v1/mimoto/actuator/health
     port: 8099
 
 livenessProbe:
   enabled: true
   httpGet:
-    path: /residentmobileapp/actuator/health
+    path: /v1/mimoto/actuator/health
     port: 8099
 
 
 readinessProbe:
   enabled: true
   httpGet:
-    path: /residentmobileapp/actuator/health
+    path: /v1/mimoto/actuator/health
     port: 8099

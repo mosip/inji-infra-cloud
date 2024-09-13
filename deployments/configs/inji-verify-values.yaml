@@ -1,0 +1,20 @@
+extraEnvVars:
+
+enable_insecure: false
+
+istio:
+  enabled: false
+
+serviceMonitor:
+  enabled: false
+
+metrics:
+  enabled: false
+
+extraEnvVarsCM:
+  - artifactory-share
+  - softhsm-share
+
+inji_verify:
+  port: '3004'
+  host: 'mimoto.esignet'

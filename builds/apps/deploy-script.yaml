@@ -90,6 +90,7 @@ steps:
       yq e -i 'select(di == 3).spec.template.spec.containers[0] += {"volumeMounts":[{"mountPath":"/home/mosip/certify-local.properties","name":"certify-properties","subPath":"certify-local.properties"}]}' deploy.yaml
       kubectl apply -f deploy.yaml -n esignet
       cat deployments/configs/inji-ingress.yaml | sed 's/DOMAIN/${_DOMAIN_}/'  | kubectl apply -n esignet -f -
+      cat deployments/configs/inji-residentmobileapp-ingress.yaml | sed 's/DOMAIN/${_DOMAIN_}/'  | kubectl apply -n esignet -f -
       set +a
   waitFor:
     - 'deploy-esignet'

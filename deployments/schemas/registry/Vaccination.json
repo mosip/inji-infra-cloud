@@ -2,55 +2,49 @@
   "$schema": "http://json-schema.org/draft-07/schema",
   "type": "object",
   "properties": {
-    "Insurance": {
-      "$ref": "#/definitions/Insurance"
+    "Vaccination": {
+      "$ref": "#/definitions/Vaccination"
     }
   },
   "required": [
-    "Insurance"
+    "Vaccination"
   ],
-  "title":"Insurance",
+  "title":"Vaccination",
   "definitions": {
-    "Insurance": {
-      "$id": "#/properties/Insurance",
+    "Vaccination": {
+      "$id": "#/properties/Vaccination",
       "type": "object",
-      "title": "Insurance",
+      "title": "Vaccination",
       "required": [
-        "policyNumber",
-        "policyName",
-        "policyExpiresOn",
-        "policyIssuedOn",
-        "fullName",
-        "dob"
+        "hospitalId",
+        "hospitalName",
+        "patientId",
+        "patientDoB",
+        "vaccineName",
+        "gender",
+        "mobile",
+        "email",
+        "vaccineIssuedOn"
       ],
       "properties": {
-        "policyNumber": {
+        "hospitalId": {
           "type": "string"
         },
-        "policyName": {
+        "hospitalName": {
           "type": "string"
         },
-        "policyExpiresOn": {
-          "type": "string",
-          "format": "date-time"
+        "patientId": {
+          "type": "string"
         },
-        "policyIssuedOn": {
-          "type": "string",
-          "format": "date-time"
+        "patientName": {
+          "type": "string"
         },
-        "benefits": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "fullName": {
-          "type": "string",
-          "title": "Full Name"
-        },
-        "dob": {
+        "patientDoB": {
           "type": "string",
           "format": "date"
+        },
+        "vaccineName": {
+          "type": "string"
         },
         "gender": {
           "type": "string",
@@ -67,6 +61,10 @@
         "email": {
           "type": "string",
           "title": "Email ID"
+        },
+        "vaccineIssuedOn": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     }
@@ -78,6 +76,7 @@
     "indexFields": [],
     "uniqueIndexFields": [],
     "roles": ["anonymous"],
-    "inviteRoles": ["anonymous"]
+    "inviteRoles": ["anonymous"],
+    "ownershipAttributes": []
   }
 }

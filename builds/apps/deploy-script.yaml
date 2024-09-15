@@ -18,8 +18,8 @@ steps:
       rm deployments/schemas/*
       cp -rf ../../deployments/.registry.env .env
       cp ../../deployments/schemas/registry/* deployments/schemas/
-      gcloud builds submit --region=${_REGION_} --config="./builds/apps/deploy-script.yaml" --project=${_PROJECT_ID_} --substitutions=_PROJECT_ID_=${_PROJECT_ID_},_REGION_=${_REGION_},_CLUSTER_NAME_=${_CLUSTER_NAME_},_LOG_BUCKET_=${_LOG_BUCKET_},_DOMAIN_=${_FR_DOMAIN_},_EMAIL_ID_=${_EMAIL_ID_},_SERVICE_ACCOUNT_=${_SERVICE_ACCOUNT_},_SECRET_NAME_=${_SECRET_NAME_},_DB_NAME_=${_DB_NAME_},_LB_NAME_=${_LB_NAME_},_NAME_=${_NAME_},_KEYCLOAK_DOMAIN_="http://registry-keycloak-service:8080"
-      echo ${_ESIGNET_DOMAIN_} ${_REDIS_NAME_}
+      gcloud builds submit --region=${_REGION_} --config="./builds/apps/deploy-script.yaml" --project=${_PROJECT_ID_} --substitutions=_PROJECT_ID_=${_PROJECT_ID_},_REGION_=${_REGION_},_CLUSTER_NAME_=${_CLUSTER_NAME_},_LOG_BUCKET_=${_LOG_BUCKET_},_DOMAIN_=${_FR_DOMAIN_},_EMAIL_ID_=${_EMAIL_ID_},_SERVICE_ACCOUNT_=${_SERVICE_ACCOUNT_},_SECRET_NAME_=${_SECRET_NAME_},_DB_NAME_=${_DB_NAME_},_LB_NAME_=${_LB_NAME_},_NAME_=${_NAME_}
+
 - name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
   id: 'configure-rc'
   entrypoint: 'bash'
@@ -28,15 +28,11 @@ steps:
   args:
     - -c
     - |
+      kubectl wait pod --all --for=jsonpath='{.status.phase}'=Running  -n registry
       kubectl get cm -n registry registry-config -o yaml | sed -e 's|WEB_DID_BASE_URL: https://example.com/identifier|WEB_DID_BASE_URL: ${_WEB_DID_BASE_URL_}|' | kubectl apply -f - -n registry
       kubectl rollout restart deploy registry-identity-service -n registry
-      echo ${_FR_DOMAIN_}
-      echo ${_ESIGNET_DOMAIN_}
-      echo ${_EMAIL_ID_}
-      echo ${_SECRET_NAME_}
-      echo ${_DB_NAME_}
-      echo ${_REDIS_NAME_}
-      echo ${_LB_NAME_}
+      kubectl rollout restart deploy registry -n registry
+
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: 'git'
   id: 'clone-esignet-repo'

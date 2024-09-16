@@ -369,6 +369,7 @@ Open postman and import both the collection and environment collections
 ```
 
 **1. Function Registry Setup**
+
 You can follow the below steps to initialize RC, you can trigger the apis in the given order in `RC` directory of the postman collection.
 - Now generate a DID(POST /did/generate) and create a credential schema(POST /credential-schema)
   - take note of $.schema[0].author and $.schema[0].id from the create credential schema request
@@ -391,6 +392,7 @@ _REGION_="$REGION",_LOG_BUCKET_=$PROJECT_ID-inji-state,_EMAIL_ID_=$EMAIL_ID,_DOM
 ```
 
 **2. eSignet Setup**
+
 - You can now create a OIDC Client, goto `eSignet/OIDC Client Mgmt` section in postman collection and trigger all the APIs to create a OIDC client
 - Copy `privateKey_jwk` env value from postman environment and update `deployments\secrets\key.jwk` file
 - Run the below command to mount the private key as p12 file to mimoto service
@@ -402,6 +404,7 @@ _REGION_="$REGION",_LOG_BUCKET_=$PROJECT_ID-inji-state,_EMAIL_ID_=$EMAIL_ID,_SER
 - Next you can run the apis in `eSignet/KBA` and verify if you are able to access the credential
 
 **3. Inji Web Demo**
+
 Next you can test the inji web by following the below steps:
 - Launch the Inji Web application in your web browser (Use _DOMAIN_)
 - In the Home page, from the section, List of Issuers section, click on issuers' tile to land in Credential Types selection page.
@@ -411,11 +414,13 @@ Next you can test the inji web by following the below steps:
 - Upon successful PDF generation, user can view the PDF of the downloaded VC
 
 **4. Mobile Wallet Demo**
+
 Next you can test the inji wallet by following the below steps:
 - Launch the Inji Wallet application in your simulator/phone
 - After the app setup you can follow the same steps provided above to download the VC for the user.
 
 **5. Inji Verify Demo**
+
 Next you can test the inji verify by following the below steps:
 - Launch the Inji Verify application in your mobile browser (Use _VERIFY_DOMAIN_)
 - In the Home page, select `Scan the QR Code` tab and scan the qr code present in the PDF file that was downloaded in the previous step.

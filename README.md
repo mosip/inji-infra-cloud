@@ -382,9 +382,9 @@ You can follow the below steps to initialize RC, you can trigger the apis in the
   - certify-default.properties:
     - mosip.certify.vciplugin.sunbird-rc.credential-type.{credential type}.static-value-map.issuerId.
     - mosip.certify.vciplugin.sunbird-rc.credential-type.{credential-type}.cred-schema-id.
-  - The $.schema[0].author DID goes to the config ending in issuerId and $.schema[0].id DID goes to the config ending in cred-schema-id.
+  - The `$.schema[0].author` DID goes to the config ending in issuerId and `$.schema[0].id` DID goes to the config ending in cred-schema-id.
 - Trigger all the 11 Apis listed in the `RC` directory in the postman collections
-- Next trigger the deploy script to update the properties of esignet/certify services
+- Next, trigger the deploy script to update the properties of esignet/certify services
 ```bash
 gcloud builds submit --config="./builds/config-update/deploy-script.yaml" \
 --region=$REGION --project=$PROJECT_ID --substitutions=_PROJECT_ID_=$PROJECT_ID,\

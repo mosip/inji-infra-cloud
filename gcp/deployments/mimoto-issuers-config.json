@@ -1,0 +1,85 @@
+{
+  "issuers": [
+    {
+      "credential_issuer": "Sunbird",
+      "display": [
+        {
+          "name": "National Health Department",
+          "logo": {
+            "url": "https://api.collab.mosip.net/inji/veridonia-logo.png",
+            "alt_text": "National Health Department"
+          },
+          "language": "en",
+          "title": "National Health Department",
+          "description": "Download Vaccination Credentials using patient details"
+        },
+        {
+          "name": "إدارة الصحة الوطنية",
+          "logo": {
+            "url": "https://api.collab.mosip.net/inji/veridonia-logo.png",
+            "alt_text": "إدارة الصحة الوطنية"
+          },
+          "language": "ar",
+          "title": "إدارة الصحة الوطنية",
+          "description": "قم بتنزيل بيانات اعتماد التطعيم باستخدام تفاصيل المريض"
+        },
+        {
+          "name": "राष्ट्रीय स्वास्थ्य विभाग",
+          "logo": {
+            "url": "https://api.collab.mosip.net/inji/veridonia-logo.png",
+            "alt_text": "राष्ट्रीय स्वास्थ्य विभाग"
+          },
+          "language": "hi",
+          "title": "राष्ट्रीय स्वास्थ्य विभाग",
+          "description": "रोगी विवरण का उपयोग करके टीकाकरण क्रेडेंशियल डाउनलोड करेंं"
+        },
+        {
+          "name": "ರಾಷ್ಟ್ರೀಯ ಆರೋಗ್ಯ ಇಲಾಖೆ",
+          "logo": {
+            "url": "https://api.collab.mosip.net/inji/veridonia-logo.png",
+            "alt_text": "ರಾಷ್ಟ್ರೀಯ ಆರೋಗ್ಯ ಇಲಾಖೆ"
+          },
+          "language": "kn",
+          "title": "ರಾಷ್ಟ್ರೀಯ ಆರೋಗ್ಯ ಇಲಾಖೆ",
+          "description": "ರೋಗಿಯ ವಿವರಗಳನ್ನು ಬಳಸಿಕೊಂಡು ವ್ಯಾಕ್ಸಿನೇಷನ್ ರುಜುವಾತುಗಳನ್ನು ಡೌನ್\u200Cಲೋಡ್ ಮಾಡಿ"
+        },
+        {
+          "name": "தேசிய சுகாதார துறை",
+          "logo": {
+            "url": "https://api.collab.mosip.net/inji/veridonia-logo.png",
+            "alt_text": "தேசிய சுகாதார துறை"
+          },
+          "language": "ta",
+          "title": "தேசிய சுகாதார துறை",
+          "description": "நோயாளி விவரங்களைப் பயன்படுத்தி தடுப்பூசி சான்றுகளைப் பதிவிறக்கவும்"
+        },
+        {
+          "name": "Pambansang Kagawaran ng Kalusugan",
+          "logo": {
+            "url": "https://api.collab.mosip.net/inji/veridonia-logo.png",
+            "alt_text": "Pambansang Kagawaran ng Kalusugan"
+          },
+          "language": "fil",
+          "title": "Pambansang Kagawaran ng Kalusugan",
+          "description": "I-download ang Mga Kredensyal sa Pagbabakuna gamit ang mga detalye ng pasyente"
+        }
+      ],
+      "protocol": "OpenId4VCI",
+      "client_id": "3yz7-j3xRzU3SODdoNgSGvO_cD8UijH3AIWRDAg1x-M",
+      "client_alias": "esignet-sunbird-partner",
+      "scopes_supported": ["vaccination_vc_ldp"],
+      "additional_headers": { "Accept": "application/json" },
+      ".well-known": "https://$INJI_HOST/v1/certify/issuance/.well-known/openid-credential-issuer?version=latest",
+      "redirect_uri": "io.mosip.residentapp.inji://oauthredirect",
+      "authorization_endpoint": "https://$ESIGNET_HOST/authorize",
+      "authorization_audience": "https://$ESIGNET_HOST/v1/esignet/oauth/v2/token",
+      "token_endpoint": "https://$INJI_HOST/residentmobileapp/get-token/Sunbird",
+      "proxy_token_endpoint": "https://$ESIGNET_HOST/v1/esignet/oauth/v2/token",
+      "credential_endpoint": "https://$INJI_HOST/v1/certify/issuance/credential",
+      "credential_type": ["VerifiableCredential", "InsuranceCredential"],
+      "credential_audience": "https://$ESIGNET_HOST/v1/esignet",
+      "enabled": "true",
+      "qr_code_type": "EmbeddedVC"
+    }
+  ]
+}

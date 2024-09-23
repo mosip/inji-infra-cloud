@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "properties": {
+    "Hospital": {
+      "$ref": "#/definitions/Hospital"
+    }
+  },
+  "required": [
+    "Hospital"
+  ],
+  "title":"Hospital",
+  "definitions": {
+    "Hospital": {
+      "$id": "#/properties/Hospital",
+      "type": "object",
+      "title": "Hospital",
+      "required": [
+        "hospitalId",
+        "hospitalName",
+        "address",
+        "hospital_admin_email"
+      ],
+      "properties": {
+        "hospitalId": {
+          "type": "string"
+        },
+        "hospitalName": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "hospital_admin_email": {
+          "type": "string"
+        },
+        "hospital_admin_mobile": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "_osConfig": {
+    "osComment": [],
+    "privateFields": [],
+    "signedFields": [],
+    "indexFields": [],
+    "uniqueIndexFields": [],
+    "roles": ["anonymous"],
+    "inviteRoles": ["anonymous"],
+    "ownershipAttributes": [
+      {
+        "email": "/hospital_admin_email",
+        "mobile": "/hospital_admin_mobile",
+        "userId": "/hospital_admin_email"
+      }
+    ]
+  }
+}

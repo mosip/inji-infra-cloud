@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "properties": {
+    "Vaccination": {
+      "$ref": "#/definitions/Vaccination"
+    }
+  },
+  "required": [
+    "Vaccination"
+  ],
+  "title":"Vaccination",
+  "definitions": {
+    "Vaccination": {
+      "$id": "#/properties/Vaccination",
+      "type": "object",
+      "title": "Vaccination",
+      "required": [
+        "hospitalId",
+        "hospitalName",
+        "patientId",
+        "patientDoB",
+        "vaccineName",
+        "gender",
+        "mobile",
+        "email",
+        "vaccineIssuedOn"
+      ],
+      "properties": {
+        "hospitalId": {
+          "type": "string"
+        },
+        "hospitalName": {
+          "type": "string"
+        },
+        "patientId": {
+          "type": "string"
+        },
+        "patientName": {
+          "type": "string"
+        },
+        "patientDoB": {
+          "type": "string",
+          "format": "date"
+        },
+        "vaccineName": {
+          "type": "string"
+        },
+        "gender": {
+          "type": "string",
+          "enum": [
+            "Male",
+            "Female",
+            "Other"
+          ]
+        },
+        "mobile": {
+          "type": "string",
+          "title": "Mobile number"
+        },
+        "email": {
+          "type": "string",
+          "title": "Email ID"
+        },
+        "vaccineIssuedOn": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  },
+  "_osConfig": {
+    "osComment": [],
+    "privateFields": [],
+    "signedFields": [],
+    "indexFields": [],
+    "uniqueIndexFields": [],
+    "roles": ["anonymous"],
+    "inviteRoles": ["anonymous"],
+    "ownershipAttributes": []
+  }
+}

@@ -1,0 +1,55 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: inji
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/issuer: "letsencrypt"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  ingressClassName: "nginx"
+  tls:
+    - hosts:
+        - DOMAIN
+      secretName: DOMAIN-tls
+  rules:
+    - host: DOMAIN
+      http:
+        paths:
+          - path: /v1/certify
+            pathType: Prefix
+            backend:
+              service:
+                name: inji-certify
+                port:
+                  number: 80
+          - backend:
+              service:
+                name: file-store
+                port:
+                  number: 80
+            path: /mimoto-issuers-config.json
+            pathType: ImplementationSpecific
+          - path: /v1/mimoto
+            pathType: Prefix
+            backend:
+              service:
+                name: mimoto
+                port:
+                  number: 80
+          - backend:
+              service:
+                name: injiweb
+                port:
+                  number: 80
+            path: /
+            pathType: ImplementationSpecific
+          - backend:
+              service:
+                name: file-store
+                port:
+                  number: 80
+            path: /credential-template.html
+            pathType: ImplementationSpecific
+
+ 

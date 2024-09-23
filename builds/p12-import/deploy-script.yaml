@@ -38,8 +38,8 @@ logsBucket: "gs://${_LOG_BUCKET_}"
 substitutions:
   _PROJECT_ID_: ''
   _REGION_: ''
-  _CLUSTER_NAME_: 'inji-dev-cluster'
-  _NAME_: 'inji-dev'
+  _CLUSTER_NAME_: 'inji-demo-cluster'
+  _NAME_: 'inji-demo'
   _SERVICE_ACCOUNT_: ''
 options:
     dynamicSubstitutions: true

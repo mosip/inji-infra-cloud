@@ -1,14 +1,14 @@
 projectInfo = {
   region = "asia-south1"
-  name   = "inji-dev"
+  name   = "inji-demo"
 }
 
 networkInfo = {
-  name                    = "inji-dev-vpc"
+  name                    = "inji-demo-vpc"
   auto_create_subnetworks = false
   mtu                     = 1460
   gke_subnet = {
-    name          = "inji-dev-gke-subnet"
+    name          = "inji-demo-gke-subnet"
     ip_cidr_range = "10.0.0.0/24"
     pods_ip_range = {
       range_name    = "pods-range"
@@ -20,23 +20,23 @@ networkInfo = {
     }
   },
   operations_subnet = {
-    name          = "inji-dev-operations-subnet",
+    name          = "inji-demo-operations-subnet",
     ip_cidr_range = "10.0.3.0/24"
   }
 }
 
 firewallPolicyInfo = {
-  name        = "inji-dev-nw-policy"
+  name        = "inji-demo-nw-policy"
   description = ""
 }
 
 firewallPolicyAssocInfo = {
-  name = "inji-dev-nw-policy-assoc"
+  name = "inji-demo-nw-policy-assoc"
 }
 
 firewallRuleInfo = [
   {
-    name            = "inji-dev-allow-ssh"
+    name            = "inji-demo-allow-ssh"
     action          = "allow"
     description     = ""
     direction       = "INGRESS"
@@ -53,7 +53,7 @@ firewallRuleInfo = [
     }
   },
   {
-    name            = "inji-dev-allow-http(s)"
+    name            = "inji-demo-allow-http(s)"
     action          = "allow"
     description     = ""
     direction       = "INGRESS"
@@ -70,7 +70,7 @@ firewallRuleInfo = [
     }
   },
   {
-    name            = "inji-dev-allow-egress"
+    name            = "inji-demo-allow-egress"
     action          = "allow"
     description     = ""
     direction       = "EGRESS"
@@ -88,30 +88,30 @@ firewallRuleInfo = [
 ]
 
 lbipInfo = {
-  name = "inji-dev-glb-lb-ip"
+  name = "inji-demo-glb-lb-ip"
 }
 
-sql_ip_name = "inji-dev-sql-lb-ip"
+sql_ip_name = "inji-demo-sql-lb-ip"
 
 natipInfo = {
-  name = "inji-dev-nat-gw-ip"
+  name = "inji-demo-nat-gw-ip"
 }
 
 routerInfo = {
-  name = "inji-dev-router"
+  name = "inji-demo-router"
   routerNAT = {
-    name = "inji-dev-router-nat-gw"
+    name = "inji-demo-router-nat-gw"
   }
 }
 
 artifactRegistryInfo = {
-  name        = "inji-dev-repo"
-  description = "inji-dev repo"
+  name        = "inji-demo-repo"
+  description = "inji-demo repo"
   format      = "DOCKER"
 }
 
 sqlInfo = {
-  instanceName = "inji-dev-pgsql"
+  instanceName = "inji-demo-pgsql"
   version      = "POSTGRES_16"
   settings = {
     tier         = "db-custom-2-8192"
@@ -123,46 +123,46 @@ sqlInfo = {
 dbInfo = [
   {
     name         = "mosip_esignet"
-    instanceName = "inji-dev-pgsql"
+    instanceName = "inji-demo-pgsql"
   },
   {
     name         = "keycloak"
-    instanceName = "inji-dev-pgsql"
+    instanceName = "inji-demo-pgsql"
   },
   {
     name         = "esignet-keycloak"
-    instanceName = "inji-dev-pgsql"
+    instanceName = "inji-demo-pgsql"
   },
   {
     name         = "mosip_mockidentitysystem"
-    instanceName = "inji-dev-pgsql"
+    instanceName = "inji-demo-pgsql"
   },
   {
     name         = "registry"
-    instanceName = "inji-dev-pgsql"
+    instanceName = "inji-demo-pgsql"
   },
   {
     name         = "credentials"
-    instanceName = "inji-dev-pgsql"
+    instanceName = "inji-demo-pgsql"
   },
   {
     name         = "credential-schema"
-    instanceName = "inji-dev-pgsql"
+    instanceName = "inji-demo-pgsql"
   },
   {
     name         = "identity"
-    instanceName = "inji-dev-pgsql"
+    instanceName = "inji-demo-pgsql"
   },
   {
     name         = "inji_certify"
-    instanceName = "inji-dev-pgsql"
+    instanceName = "inji-demo-pgsql"
   }
 ]
 
 
 opsVMInfo = {
-  name         = "inji-dev-ops-vm"
-  ip_name      = "inji-dev-opsvm-pub-ip"
+  name         = "inji-demo-ops-vm"
+  ip_name      = "inji-demo-opsvm-pub-ip"
   machine_type = "n2d-standard-2"
   zone         = "asia-south1-a"
   boot_disk = {
@@ -171,11 +171,11 @@ opsVMInfo = {
 }
 
 secretInfo = {
-  name = "inji-dev"
+  name = "inji-demo"
 }
 
 clusterInfo = {
-  name                              = "inji-dev-cluster"
+  name                              = "inji-demo-cluster"
   initial_node                      = 1
   deletion_protection               = false
   networking_mode                   = "VPC_NATIVE"
@@ -210,8 +210,8 @@ clusterInfo = {
 }
 
 redisInfo = {
-  instanceName = "inji-dev-redis"
-  instanceName = "inji-dev-redis"
+  instanceName = "inji-demo-redis"
+  instanceName = "inji-demo-redis"
   version      = "REDIS_7_0"
   protection   = false,
   memorySize   = 1

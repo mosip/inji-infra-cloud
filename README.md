@@ -311,8 +311,8 @@ kubectl rollout restart deploy mimoto -n esignet
 
 ```bash
 gcloud compute instances list
-gcloud compute ssh inji-dev-ops-vm --zone=$ZONE
-gcloud container clusters get-credentials inji-dev-cluster --project=$PROJECT_ID --region=$REGION
+gcloud compute ssh inji-demo-ops-vm --zone=$ZONE
+gcloud container clusters get-credentials inji-demo-cluster --project=$PROJECT_ID --region=$REGION
 
 kubectl get nodes
 kubectl get pods -n $NS
@@ -329,11 +329,11 @@ sudo apt-get install postgresql-client
 ```
 - Run below command to access psql password
 ```bash
-gcloud secrets versions access latest --secret inji-dev
+gcloud secrets versions access latest --secret inji-demo
 ```
 - Run below command to get private ip of sql
 ```bash
- gcloud sql instances describe inji-dev-pgsql --format=json  | jq -r ".ipAddresses"
+ gcloud sql instances describe inji-demo-pgsql --format=json  | jq -r ".ipAddresses"
 ```
 - Connect to psql
 ```bash

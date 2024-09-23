@@ -1,6 +1,7 @@
 provider "google" {
   project = var.project_id
   region  = var.projectInfo.region
+  version = "5.44.0"
 }
 
 terraform {
@@ -119,6 +120,7 @@ resource "google_compute_global_address" "private_ip_block" {
   prefix_length = 16
   network       = google_compute_network.vpc.id
   project       = var.project_id
+  depends_on = [google_compute_subnetwork.gke_subnet]
 }
 
 resource "google_service_networking_connection" "service_nw" {

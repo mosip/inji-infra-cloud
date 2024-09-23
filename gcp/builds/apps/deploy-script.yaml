@@ -50,8 +50,6 @@ steps:
       cp -rf ../../deployments/esignet-local.properties deployments/configs/esignet.properties
       cp -rf ../../deployments/.esignet.env .env
       gcloud builds submit --region=${_REGION_} --config="./builds/apps/deploy-script.yaml" --project=${_PROJECT_ID_} --substitutions=_PROJECT_ID_=${_PROJECT_ID_},_REGION_=${_REGION_},_CLUSTER_NAME_=${_CLUSTER_NAME_},_LOG_BUCKET_=${_LOG_BUCKET_},_DOMAIN_=${_ESIGNET_DOMAIN_},_EMAIL_ID_=${_EMAIL_ID_},_SERVICE_ACCOUNT_=${_SERVICE_ACCOUNT_},_SECRET_NAME_=${_SECRET_NAME_},_DB_NAME_=${_DB_NAME_},_LB_NAME_=${_LB_NAME_},_NAME_=${_NAME_},_ENABLE_MOCK_=false,_REDIS_NAME_=${_REDIS_NAME_},_SKIP_INGRESS_="true"
-      echo ${_FR_DOMAIN_}
-      echo ${_WEB_DID_BASE_URL_}
       sh deployments/scripts/config-init.sh ${_ESIGNET_DOMAIN_} ${_DB_NAME_} ${_SECRET_NAME_} ${_REDIS_NAME_} ${_REGION_} false ${_FR_DOMAIN_}
 - name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
   id: 'helm-inji-certify-install'
@@ -63,16 +61,6 @@ steps:
       apt-get update
       apt-get install jq wget -y
       wget https://github.com/mikefarah/yq/releases/download/v4.44.2/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
-      echo ${_FR_DOMAIN_}
-      echo ${_WEB_DID_BASE_URL_}
-      echo ${_FR_DOMAIN_}
-      echo ${_ESIGNET_DOMAIN_}
-      echo ${_EMAIL_ID_}
-      echo ${_SECRET_NAME_}
-      echo ${_DB_NAME_}
-      echo ${_REDIS_NAME_}
-      echo ${_CLUSTER_NAME_}
-      echo ${_LB_NAME_}
       export $(grep -v '^#' .env | xargs -d '\n')
       helm repo add mosip https://mosip.github.io/mosip-helm
       sqlIP=$(gcloud sql instances describe ${_DB_NAME_} --format=json  | jq -r ".ipAddresses[0].ipAddress") &&
@@ -100,16 +88,6 @@ steps:
       apt-get update
       apt-get install jq wget -y
       wget https://github.com/mikefarah/yq/releases/download/v4.44.2/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
-      echo ${_FR_DOMAIN_}
-      echo ${_WEB_DID_BASE_URL_}
-      echo ${_FR_DOMAIN_}
-      echo ${_ESIGNET_DOMAIN_}
-      echo ${_EMAIL_ID_}
-      echo ${_SECRET_NAME_}
-      echo ${_DB_NAME_}
-      echo ${_REDIS_NAME_}
-      echo ${_CLUSTER_NAME_}
-      echo ${_LB_NAME_}
       export $(grep -v '^#' .env | xargs -d '\n')
       helm repo add mosip https://mosip.github.io/mosip-helm
       kubectl create ns inji
@@ -135,16 +113,6 @@ steps:
       apt-get update
       apt-get install jq wget -y
       wget https://github.com/mikefarah/yq/releases/download/v4.44.2/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
-      echo ${_FR_DOMAIN_}
-      echo ${_WEB_DID_BASE_URL_}
-      echo ${_FR_DOMAIN_}
-      echo ${_ESIGNET_DOMAIN_}
-      echo ${_EMAIL_ID_}
-      echo ${_SECRET_NAME_}
-      echo ${_DB_NAME_}
-      echo ${_REDIS_NAME_}
-      echo ${_CLUSTER_NAME_}
-      echo ${_LB_NAME_}
       export $(grep -v '^#' .env | xargs -d '\n')
       helm repo add mosip https://mosip.github.io/mosip-helm
       helm -n esignet install injiweb mosip/injiweb -f deployments/configs/inji-web-values.yaml --version $injiweb_helm_version --set image.repository=$injiweb_docker_image --set image.tag=$injiweb_docker_version  --set inji_web.inji_web_service_host=mimoto.esignet --set esignet_redirect_url=https://${_DOMAIN_}
@@ -159,17 +127,6 @@ steps:
     - -c
     - |
       set -a
-      echo ${_FR_DOMAIN_}
-      echo ${_WEB_DID_BASE_URL_}
-      echo ${_FR_DOMAIN_}
-      echo ${_ESIGNET_DOMAIN_}
-      echo ${_EMAIL_ID_}
-      echo ${_SECRET_NAME_}
-      echo ${_DB_NAME_}
-      echo ${_REDIS_NAME_}
-      echo ${_CLUSTER_NAME_}
-      echo ${_LB_NAME_}
-      echo ${_VERIFY_DOMAIN_}
       export $(grep -v '^#' .env | xargs -d '\n')
       helm repo add mosip https://mosip.github.io/mosip-helm
       cat deployments/configs/inji-verify-ingress.yaml | sed 's/DOMAIN/${_VERIFY_DOMAIN_}/'  | kubectl apply -n esignet -f -

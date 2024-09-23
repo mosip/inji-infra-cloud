@@ -9,15 +9,6 @@ steps:
     - -c
     - |
       set -a
-      echo ${_EMAIL_ID_}
-      echo ${_FR_DOMAIN_}
-      echo ${_FR_DOMAIN_}
-      echo ${_ESIGNET_DOMAIN_}
-      echo ${_EMAIL_ID_}
-      echo ${_SECRET_NAME_}
-      echo ${_DB_NAME_}
-      echo ${_REDIS_NAME_}
-      echo ${_CLUSTER_NAME_}
       
       sh deployments/scripts/config-init.sh ${_ESIGNET_DOMAIN_} ${_DB_NAME_} ${_SECRET_NAME_} ${_REDIS_NAME_} ${_REGION_} false ${_FR_DOMAIN_}
       

@@ -1,0 +1,24 @@
+extraEnvVars:
+  - name: SPRING_CONFIG_LOCATION
+    value: "/home/mosip/certify-local.properties"
+  - name: spring_profiles_active
+    value: "local"
+  - name: SPRING_CONFIG_NAME
+    value: "certify"
+  - name: mosip.esignet.integration.scan-base-package
+    value: "io.mosip.esignet.mock.integration,io.mosip.authentication.esignet.integration"
+
+enable_insecure: false
+
+istio:
+  enabled: false
+
+serviceMonitor:
+  enabled: false
+
+metrics:
+  enabled: false
+
+extraEnvVarsCM:
+  - artifactory-share
+  - softhsm-share

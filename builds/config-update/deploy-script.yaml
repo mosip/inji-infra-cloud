@@ -1,0 +1,52 @@
+steps:
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'get-credentials'
+  args: ['container', 'clusters', 'get-credentials', '${_CLUSTER_NAME_}', '--project=${_PROJECT_ID_}', '--region=${_REGION_}', '--internal-ip']
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'update-esignet-config'
+  entrypoint: 'bash'
+  args:
+    - -c
+    - |
+      set -a
+      echo ${_EMAIL_ID_}
+      echo ${_FR_DOMAIN_}
+      echo ${_FR_DOMAIN_}
+      echo ${_ESIGNET_DOMAIN_}
+      echo ${_EMAIL_ID_}
+      echo ${_SECRET_NAME_}
+      echo ${_DB_NAME_}
+      echo ${_REDIS_NAME_}
+      echo ${_CLUSTER_NAME_}
+      
+      sh deployments/scripts/config-init.sh ${_ESIGNET_DOMAIN_} ${_DB_NAME_} ${_SECRET_NAME_} ${_REDIS_NAME_} ${_REGION_} false ${_FR_DOMAIN_}
+      
+      sh deployments/scripts/certify-config-init.sh ${_ESIGNET_DOMAIN_} ${_DB_NAME_} ${_SECRET_NAME_} ${_REDIS_NAME_} ${_REGION_} false ${_FR_DOMAIN_} ${_DOMAIN_}
+      kubectl rollout restart deploy inji-certify -n esignet
+      
+      sh deployments/scripts/mimoto-config-init.sh ${_ESIGNET_DOMAIN_} ${_DOMAIN_}
+      kubectl rollout restart deploy mimoto -n esignet
+      kubectl rollout restart deploy file-store -n esignet
+      
+      set +a
+tags: ['cloud-builders-community']
+serviceAccount: "projects/${_PROJECT_ID_}/serviceAccounts/${_SERVICE_ACCOUNT_}"
+logsBucket: "gs://${_LOG_BUCKET_}"
+substitutions:
+  _PROJECT_ID_: ''
+  _REGION_: ''
+  _CLUSTER_NAME_: 'inji-demo-cluster'
+  _FR_DOMAIN_: ''
+  _ESIGNET_DOMAIN_: ''
+  _DOMAIN_: ''
+  _LOG_BUCKET_: ''
+  _EMAIL_ID_: ''
+  _SERVICE_ACCOUNT_: ''
+  _SECRET_NAME_: 'inji-demo'
+  _DB_NAME_: 'inji-demo-pgsql'
+  _REDIS_NAME_: 'inji-demo-redis'
+  _NAME_: 'inji-demo'
+options:
+    dynamicSubstitutions: true
+    pool:
+      name: 'projects/${_PROJECT_ID_}/locations/${_REGION_}/workerPools/${_NAME_}-cloudbuild-private-worker-pool'

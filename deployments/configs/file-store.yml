@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: file-store
+  labels:
+    name: file-store
+spec:
+  selector:
+    matchLabels:
+      name: file-store
+  template:
+
+    metadata:
+      labels:
+        name: file-store
+    spec:
+      volumes:
+        - name: mimoto-properties
+          configMap:
+            name: mimoto-local-properties
+      containers:
+        - name: file-store
+          image: nginx:1.27.1-alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: /usr/share/nginx/html/mimoto-issuers-config.json
+              name: mimoto-properties
+              subPath: mimoto-issuers-config.json
+            - mountPath: /usr/share/nginx/html/credential-template.html
+              name: mimoto-properties
+              subPath: credential-template.html
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: file-store
+  labels:
+    run: file-store
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+  selector:
+    name: file-store
+

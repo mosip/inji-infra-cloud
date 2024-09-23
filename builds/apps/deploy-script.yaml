@@ -1,0 +1,204 @@
+steps:
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'get-credentials'
+  args: ['container', 'clusters', 'get-credentials', '${_CLUSTER_NAME_}', '--project=${_PROJECT_ID_}', '--region=${_REGION_}', '--internal-ip']
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'git'
+  id: 'clone-rc-repo'
+  args: ['clone', 'https://github.com/tejash-jl/gcp-devops.git']
+  dir: 'sunbird-rc'
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'deploy-rc'
+  entrypoint: 'bash'
+  dir: 'sunbird-rc/gcp-devops'
+  waitFor: 'clone-rc-repo'
+  args:
+    - -c
+    - |
+      rm deployments/schemas/*
+      cp -rf ../../deployments/.registry.env .env
+      cp ../../deployments/schemas/registry/* deployments/schemas/
+      gcloud builds submit --region=${_REGION_} --config="./builds/apps/deploy-script.yaml" --project=${_PROJECT_ID_} --substitutions=_PROJECT_ID_=${_PROJECT_ID_},_REGION_=${_REGION_},_CLUSTER_NAME_=${_CLUSTER_NAME_},_LOG_BUCKET_=${_LOG_BUCKET_},_DOMAIN_=${_FR_DOMAIN_},_EMAIL_ID_=${_EMAIL_ID_},_SERVICE_ACCOUNT_=${_SERVICE_ACCOUNT_},_SECRET_NAME_=${_SECRET_NAME_},_DB_NAME_=${_DB_NAME_},_LB_NAME_=${_LB_NAME_},_NAME_=${_NAME_}
+
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'configure-rc'
+  entrypoint: 'bash'
+  dir: 'sunbird-rc/gcp-devops'
+  waitFor: 'deploy-rc'
+  args:
+    - -c
+    - |
+      kubectl wait pod --all --for=jsonpath='{.status.phase}'=Running  -n registry
+      kubectl get cm -n registry registry-config -o yaml | sed -e 's|WEB_DID_BASE_URL: https://example.com/identifier|WEB_DID_BASE_URL: ${_WEB_DID_BASE_URL_}|' | kubectl apply -f - -n registry
+      kubectl rollout restart deploy registry-identity-service -n registry
+      kubectl rollout restart deploy registry -n registry
+
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'git'
+  id: 'clone-esignet-repo'
+  args: ['clone', 'https://github.com/tejash-jl/eSignet-Stack.git']
+  dir: 'esignet'
+  waitFor: 'configure-rc'
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'deploy-esignet'
+  entrypoint: 'bash'
+  dir: 'esignet/eSignet-Stack'
+  waitFor: 'clone-esignet-repo'
+  args:
+    - -c
+    - |
+      cp -rf ../../deployments/esignet-local.properties deployments/configs/esignet.properties
+      cp -rf ../../deployments/.esignet.env .env
+      gcloud builds submit --region=${_REGION_} --config="./builds/apps/deploy-script.yaml" --project=${_PROJECT_ID_} --substitutions=_PROJECT_ID_=${_PROJECT_ID_},_REGION_=${_REGION_},_CLUSTER_NAME_=${_CLUSTER_NAME_},_LOG_BUCKET_=${_LOG_BUCKET_},_DOMAIN_=${_ESIGNET_DOMAIN_},_EMAIL_ID_=${_EMAIL_ID_},_SERVICE_ACCOUNT_=${_SERVICE_ACCOUNT_},_SECRET_NAME_=${_SECRET_NAME_},_DB_NAME_=${_DB_NAME_},_LB_NAME_=${_LB_NAME_},_NAME_=${_NAME_},_ENABLE_MOCK_=false,_REDIS_NAME_=${_REDIS_NAME_},_SKIP_INGRESS_="true"
+      echo ${_FR_DOMAIN_}
+      echo ${_WEB_DID_BASE_URL_}
+      sh deployments/scripts/config-init.sh ${_ESIGNET_DOMAIN_} ${_DB_NAME_} ${_SECRET_NAME_} ${_REDIS_NAME_} ${_REGION_} false ${_FR_DOMAIN_}
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'helm-inji-certify-install'
+  entrypoint: 'bash'
+  args:
+    - -c
+    - |
+      set -a
+      apt-get update
+      apt-get install jq wget -y
+      wget https://github.com/mikefarah/yq/releases/download/v4.44.2/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
+      echo ${_FR_DOMAIN_}
+      echo ${_WEB_DID_BASE_URL_}
+      echo ${_FR_DOMAIN_}
+      echo ${_ESIGNET_DOMAIN_}
+      echo ${_EMAIL_ID_}
+      echo ${_SECRET_NAME_}
+      echo ${_DB_NAME_}
+      echo ${_REDIS_NAME_}
+      echo ${_CLUSTER_NAME_}
+      echo ${_LB_NAME_}
+      export $(grep -v '^#' .env | xargs -d '\n')
+      helm repo add mosip https://mosip.github.io/mosip-helm
+      sqlIP=$(gcloud sql instances describe ${_DB_NAME_} --format=json  | jq -r ".ipAddresses[0].ipAddress") &&
+      sqlPass=$(gcloud secrets versions access latest --secret ${_SECRET_NAME_}) &&
+      kubectl -n esignet delete secret db-common-secrets
+      helm -n esignet install postgres-init-certify mosip/postgres-init -f deployments/configs/db_init.yaml --version $postgres_init_helm_version --set databases.mosip_certify.host=$sqlIP --set image.repository=$postgres_init_docker_image --set image.tag=$postgres_init_docker_version --wait
+
+      sh deployments/scripts/certify-config-init.sh ${_ESIGNET_DOMAIN_} ${_DB_NAME_} ${_SECRET_NAME_} ${_REDIS_NAME_} ${_REGION_} false ${_FR_DOMAIN_} ${_DOMAIN_}
+      helm -n esignet template inji-certify mosip/inji-certify --version $certify_helm_version -f deployments/configs/certify-values.yaml --set image.repository=$certify_docker_image --set image.tag=$certify_docker_version > deploy.yaml
+      yq  e -i 'select(di == 3).spec.template.spec.volumes += [{"name":"certify-properties","configMap":{"name":"certify-local-properties"}}]' deploy.yaml
+      yq e -i 'select(di == 3).spec.template.spec.containers[0] += {"volumeMounts":[{"mountPath":"/home/mosip/certify-local.properties","name":"certify-properties","subPath":"certify-local.properties"}]}' deploy.yaml
+      kubectl apply -f deploy.yaml -n esignet
+      cat deployments/configs/inji-ingress.yaml | sed 's/DOMAIN/${_DOMAIN_}/'  | kubectl apply -n esignet -f -
+      cat deployments/configs/inji-residentmobileapp-ingress.yaml | sed 's/DOMAIN/${_DOMAIN_}/'  | kubectl apply -n esignet -f -
+      set +a
+  waitFor:
+    - 'deploy-esignet'
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'helm-inji-mimoto-install'
+  entrypoint: 'bash'
+  args:
+    - -c
+    - |
+      set -a
+      apt-get update
+      apt-get install jq wget -y
+      wget https://github.com/mikefarah/yq/releases/download/v4.44.2/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
+      echo ${_FR_DOMAIN_}
+      echo ${_WEB_DID_BASE_URL_}
+      echo ${_FR_DOMAIN_}
+      echo ${_ESIGNET_DOMAIN_}
+      echo ${_EMAIL_ID_}
+      echo ${_SECRET_NAME_}
+      echo ${_DB_NAME_}
+      echo ${_REDIS_NAME_}
+      echo ${_CLUSTER_NAME_}
+      echo ${_LB_NAME_}
+      export $(grep -v '^#' .env | xargs -d '\n')
+      helm repo add mosip https://mosip.github.io/mosip-helm
+      kubectl create ns inji
+      sh deployments/scripts/mimoto-config-init.sh ${_ESIGNET_DOMAIN_} ${_DOMAIN_}
+
+      helm -n esignet template mimoto mosip/mimoto --version $mimoto_helm_version -f deployments/configs/mimoto-values.yaml --set image.repository=$mimoto_docker_image --set image.tag=$mimoto_docker_version > deploy.yaml
+      yq e -i 'select(di == 3).spec.template.spec.volumes += [{"name":"mimoto-properties","configMap":{"name":"mimoto-local-properties"}}]' deploy.yaml
+      yq e -i 'select(di == 3).spec.template.spec.containers[0].volumeMounts += [{"mountPath":"/home/mosip/mimoto-default.properties","name":"mimoto-properties","subPath":"mimoto-default.properties"},{"mountPath":"/home/mosip/mimoto-issuers-config.json","name":"mimoto-properties","subPath":"mimoto-issuers-config.json"}]' deploy.yaml
+      yq e -i 'select(di == 3).spec.template.spec.containers[0] += {"ports":[{"name":"spring-service","containerPort":8099}]}' deploy.yaml
+      kubectl apply -f deploy.yaml -n esignet
+      kubectl apply -f deployments/configs/file-store.yml -n esignet
+
+      set +a
+  waitFor:
+    - 'helm-inji-certify-install'
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'helm-inji-web-install'
+  entrypoint: 'bash'
+  args:
+    - -c
+    - |
+      set -a
+      apt-get update
+      apt-get install jq wget -y
+      wget https://github.com/mikefarah/yq/releases/download/v4.44.2/yq_linux_amd64.tar.gz -O - | tar xz && mv yq_linux_amd64 /usr/bin/yq
+      echo ${_FR_DOMAIN_}
+      echo ${_WEB_DID_BASE_URL_}
+      echo ${_FR_DOMAIN_}
+      echo ${_ESIGNET_DOMAIN_}
+      echo ${_EMAIL_ID_}
+      echo ${_SECRET_NAME_}
+      echo ${_DB_NAME_}
+      echo ${_REDIS_NAME_}
+      echo ${_CLUSTER_NAME_}
+      echo ${_LB_NAME_}
+      export $(grep -v '^#' .env | xargs -d '\n')
+      helm repo add mosip https://mosip.github.io/mosip-helm
+      helm -n esignet install injiweb mosip/injiweb -f deployments/configs/inji-web-values.yaml --version $injiweb_helm_version --set image.repository=$injiweb_docker_image --set image.tag=$injiweb_docker_version  --set inji_web.inji_web_service_host=mimoto.esignet --set esignet_redirect_url=https://${_DOMAIN_}
+
+      set +a
+  waitFor:
+    - 'helm-inji-mimoto-install'
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'helm-inji-verify-install'
+  entrypoint: 'bash'
+  args:
+    - -c
+    - |
+      set -a
+      echo ${_FR_DOMAIN_}
+      echo ${_WEB_DID_BASE_URL_}
+      echo ${_FR_DOMAIN_}
+      echo ${_ESIGNET_DOMAIN_}
+      echo ${_EMAIL_ID_}
+      echo ${_SECRET_NAME_}
+      echo ${_DB_NAME_}
+      echo ${_REDIS_NAME_}
+      echo ${_CLUSTER_NAME_}
+      echo ${_LB_NAME_}
+      echo ${_VERIFY_DOMAIN_}
+      export $(grep -v '^#' .env | xargs -d '\n')
+      helm repo add mosip https://mosip.github.io/mosip-helm
+      cat deployments/configs/inji-verify-ingress.yaml | sed 's/DOMAIN/${_VERIFY_DOMAIN_}/'  | kubectl apply -n esignet -f -
+      helm -n esignet install injiverify mosip/injiverify -f deployments/configs/inji-verify-values.yaml --version $injiverify_helm_version --set image.repository=$injiverify_docker_image --set image.tag=$injiverify_docker_version --set esignet_redirect_url=https://${_DOMAIN_}
+
+      set +a
+  waitFor:
+    - 'helm-inji-web-install'
+tags: ['cloud-builders-community']
+serviceAccount: "projects/${_PROJECT_ID_}/serviceAccounts/${_SERVICE_ACCOUNT_}"
+logsBucket: "gs://${_LOG_BUCKET_}"
+substitutions:
+  _PROJECT_ID_: ''
+  _REGION_: ''
+  _CLUSTER_NAME_: 'inji-demo-cluster'
+  _FR_DOMAIN_: ''
+  _ESIGNET_DOMAIN_: ''
+  _VERIFY_DOMAIN_: ''
+  _LOG_BUCKET_: ''
+  _EMAIL_ID_: ''
+  _SERVICE_ACCOUNT_: ''
+  _SECRET_NAME_: 'inji-demo'
+  _DB_NAME_: 'inji-demo-pgsql'
+  _REDIS_NAME_: 'inji-demo-redis'
+  _LB_NAME_: 'inji-demo-glb-lb-ip'
+  _NAME_: 'inji-demo'
+  _WEB_DID_BASE_URL_: 'https://tejash-jl.github.io/DID-Resolve'
+  _DOMAIN_: ''
+options:
+    dynamicSubstitutions: true
+    pool:
+      name: 'projects/${_PROJECT_ID_}/locations/${_REGION_}/workerPools/${_NAME_}-cloudbuild-private-worker-pool'

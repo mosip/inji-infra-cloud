@@ -1,0 +1,47 @@
+steps:
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'get-credentials'
+  args: ['container', 'clusters', 'get-credentials', '${_CLUSTER_NAME_}', '--project=${_PROJECT_ID_}', '--region=${_REGION_}', '--internal-ip']
+- name: 'node'
+  id: 'node'
+  entrypoint: 'bash'
+  args:
+    - -c
+    - |
+      node --version
+      npm --version
+      openssl version
+      npm install -g cli-jwk-to-pem
+      jwk=$(cat deployments/secrets/key.jwk)
+      jwk-to-pem --jwk $jwk > key.pem
+      
+      openssl req -new -sha256 -key key.pem -out csr.csr -subj "/C=GB/ST=London/L=London/O=Global Security/OU=IT Department/CN=example.com"
+      
+      openssl req -x509 -sha256 -days 365 -key key.pem -in csr.csr -out certificate.pem
+      
+      export pass=$(cat deployments/mimoto-default.properties | grep "mosip.oidc.p12.password" | sed  -e 's/mosip.oidc.p12.password=//g')
+      openssl pkcs12 -export -out oidckeystore.p12 -inkey key.pem -in certificate.pem --name esignet-sunbird-partner -passout env:pass
+
+- name: 'gcr.io/${_PROJECT_ID_}/helm:3.12.0'
+  id: 'update-mimoto-p12-secret'
+  entrypoint: 'bash'
+  args:
+    - -c
+    - |
+      set -a
+      kubectl create secret generic mimotooidc -n esignet --from-file=oidckeystore.p12
+      kubectl rollout restart deploy mimoto -n esignet
+      set +a
+tags: ['cloud-builders-community']
+serviceAccount: "projects/${_PROJECT_ID_}/serviceAccounts/${_SERVICE_ACCOUNT_}"
+logsBucket: "gs://${_LOG_BUCKET_}"
+substitutions:
+  _PROJECT_ID_: ''
+  _REGION_: ''
+  _CLUSTER_NAME_: 'inji-demo-cluster'
+  _NAME_: 'inji-demo'
+  _SERVICE_ACCOUNT_: ''
+options:
+    dynamicSubstitutions: true
+    pool:
+      name: 'projects/${_PROJECT_ID_}/locations/${_REGION_}/workerPools/${_NAME_}-cloudbuild-private-worker-pool'

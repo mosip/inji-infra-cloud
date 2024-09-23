@@ -1,0 +1,46 @@
+extraEnvVars:
+  - name: SPRING_CONFIG_LOCATION
+    value: "/home/mosip/"
+  - name: spring_profiles_active
+    value: "default"
+  - name: SPRING_CONFIG_NAME
+    value: "mimoto"
+  - name: mosip.esignet.integration.scan-base-package
+    value: "io.mosip.esignet.mock.integration,io.mosip.authentication.esignet.integration"
+
+enable_insecure: false
+
+istio:
+  enabled: false
+
+serviceMonitor:
+  enabled: false
+
+metrics:
+  enabled: false
+
+extraEnvVarsCM:
+  - artifactory-share
+  - softhsm-share
+
+service:
+  containerPort: 8099
+
+startupProbe:
+  enabled: true
+  httpGet:
+    path: /v1/mimoto/actuator/health
+    port: 8099
+
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /v1/mimoto/actuator/health
+    port: 8099
+
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /v1/mimoto/actuator/health
+    port: 8099

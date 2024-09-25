@@ -1,0 +1,86 @@
+import * as cdk from '@aws-cdk/core';
+import * as ec2 from '@aws-cdk/aws-ec2';
+import * as msk from '@aws-cdk/aws-msk';
+
+export class KafkaClusterStack extends cdk.Stack {
+  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+    super(scope, id, props);
+
+    const vpc = ec2.Vpc.fromLookup(this, 'VPC', { isDefault: true });
+
+    const publicSubnets = vpc.selectSubnets({
+      subnetType: ec2.SubnetType.PUBLIC
+    });
+
+    const mskSecurityGroup = new ec2.SecurityGroup(this, 'MSKSecurityGroup', {
+      vpc,
+      description: 'Security group for MSK cluster with ports 9092 and 9093 open to the world',
+      allowAllOutbound: true,
+    });
+
+    mskSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(9092), 'Allow Kafka TCP traffic on port 9092');
+    mskSecurityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(9093), 'Allow Kafka TCP traffic on port 9093');
+
+    const cluster = new msk.CfnCluster(this, 'MyMskCluster', {
+      clusterName: 'my-msk-cluster',
+      kafkaVersion: '3.5.1',
+      numberOfBrokerNodes: publicSubnets.subnetIds.length,
+      brokerNodeGroupInfo: {
+        instanceType: 'kafka.t3.small',
+        clientSubnets: publicSubnets.subnetIds,
+        securityGroups: [mskSecurityGroup.securityGroupId],
+      },
+      enhancedMonitoring: 'PER_BROKER',
+      encryptionInfo: {
+        encryptionAtRest: {
+          dataVolumeKmsKeyId: 'YOUR_KMS_KEY_ID'
+        },
+        encryptionInTransit: {
+          clientBroker: 'TLS',
+          inCluster: true
+        }
+      },
+      clientAuthentication: {
+        sasl: {
+          scram: true
+        }
+      },
+      tags: {
+        'Project': 'KafkaCluster'
+      },
+      loggingInfo: {
+        brokerLogs: {
+          cloudWatchLogs: {
+            enabled: true,
+            logGroup: 'MSKBrokerLogs'
+          },
+          s3: {
+            enabled: false
+          },
+          firehose: {
+            enabled: false
+          }
+        }
+      },
+      openMonitoring: {
+        prometheus: {
+          jmxExporter: {
+            enabledInBroker: true
+          },
+          nodeExporter: {
+            enabledInBroker: true
+          }
+        }
+      }
+    });
+
+    cluster.addPropertyOverride('brokerNodeGroupInfo.publiclyAccessible', true);
+  }
+}
+
+const app = new cdk.App();
+new KafkaClusterStack(app, 'KafkaClusterStack', {
+  env: {
+    region: 'ap-south-1',
+  },
+});

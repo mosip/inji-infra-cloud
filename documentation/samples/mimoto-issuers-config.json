@@ -1,0 +1,34 @@
+{
+  "issuers": [
+    {
+      "credential_issuer": "Sunbird",
+      "display": [
+        {
+          "name": "Education Department",
+          "logo": {
+            "url": "https://static.vecteezy.com/system/resources/previews/007/688/840/large_2x/education-logo-free-vector.jpg",
+            "alt_text": "an issuer logo"
+          },
+          "language": "en",
+          "title": "Education Department",
+          "description": "Download Education Credentials"
+        }
+      ],
+      "protocol": "OpenId4VCI",
+      "client_id": "3yz7-j3xRzU3SODdoNgSGvO_cD8UijH3AIWRDAg1x-M",
+      "client_alias": "mpartner-default-mimotooidc",
+      "scopes_supported": ["sunbird_rc_education_vc_ldp"],
+      "additional_headers": { "Accept": "application/json" },
+      ".well-known": "https://oidc.sandbox.demodpgs.net/v1/esignet/vci/.well-known/openid-credential-issuer?version=v11",
+      "redirect_uri": "io.mosip.residentapp.inji://oauthredirect",
+      "authorization_endpoint": "https://oidc.sandbox.demodpgs.net/authorize",
+      "authorization_audience": "https://oidc.sandbox.demodpgs.net/v1/esignet/oauth/v2/token",
+      "token_endpoint": "https://inji-web.sandbox.demodpgs.net/v1/mimoto/get-token/Sunbird",
+      "proxy_token_endpoint": "https://oidc.sandbox.demodpgs.net/v1/esignet/oauth/v2/token",
+      "credential_endpoint": "https://oidc.sandbox.demodpgs.net/v1/esignet/vci/credential",
+      "credential_type": ["VerifiableCredential", "EducationCredential"],
+      "credential_audience": "https://oidc.sandbox.demodpgs.net",
+      "enabled": "true"
+    }
+  ]
+}

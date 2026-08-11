@@ -175,9 +175,10 @@ assuming other stages exist.
    `destroy-script.yaml` command (e.g. under `builds/infra/`) unless the
    user has explicitly asked to provision or tear down GCP
    infrastructure, and has confirmed the target project.
-2. Do not run an application `deploy-script.yaml` command (e.g. under
-   `builds/apps/`) unless the user has explicitly asked to deploy
-   application services, and has confirmed the target project.
+2. Do not run an application `deploy-script.yaml` or `destroy-script.yaml`
+   command (e.g. under `builds/apps/`) unless the user has explicitly
+   asked to deploy or tear down application services, and has confirmed
+   the target project.
 3. Do not put a real GCP project ID, service account email, or private key
    into a `.tfvars`/`.env` file, commit, or PR description.
 4. Do not copy the open (`0.0.0.0/0`) firewall rules from

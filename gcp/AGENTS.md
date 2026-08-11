@@ -10,8 +10,10 @@ One-click deployment of the INJI stack (inji-certify, mimoto, inji-web,
 inji-verify) plus eSignet and Sunbird RC (registry) onto GCP. Deployment
 has three parts, per `gcp/README.md`:
 
-- **Terraform** provisions infrastructure (GKE cluster, network, Cloud SQL,
-  service accounts) in stages: `pre-config` then app-level infra.
+- **Terraform** provisions the GKE/network/Cloud SQL/service-account
+  infrastructure from `terraform-scripts/pre-config/` — this is the only
+  stage under `terraform-scripts/`, there is no separate app-level
+  Terraform stage. `builds/infra/` invokes this same Terraform state.
 - **Cloud Build YAML** files under `builds/` wrap the Terraform/Helm steps
   so they can be run as one `gcloud builds submit` command instead of
   invoking Terraform/Helm by hand.
@@ -30,12 +32,15 @@ has three parts, per `gcp/README.md`:
 
 ## Build & Test Commands
 
-There is no automated test suite — validation is done by running Cloud
-Build submissions and then exercising the deployed services with the
-Postman collection. All commands below are documented in `gcp/README.md`
-and expect `PROJECT_ID`, `REGION`, `GSA` (service account), and related
-shell variables to already be set (see that README's "Setup CLI
-environment variables" section).
+There is no automated test suite. Terraform and configuration checks
+(e.g. `terraform validate`/`plan`, reviewing a `.tfvars`/Cloud Build YAML
+diff) are safe validation steps. Cloud Build submissions that provision
+or deploy resources change real infrastructure and require explicit
+user authorization before running — they are not routine validation.
+Once deployed, exercise the services with the Postman collection. All
+commands below are documented in `gcp/README.md` and expect `PROJECT_ID`,
+`REGION`, `GSA` (service account), and related shell variables to already
+be set (see that README's "Setup CLI environment variables" section).
 
 ```bash
 # One-time: Terraform state bucket
@@ -166,11 +171,15 @@ assuming other stages exist.
 
 ### Do not
 
-1. Do not run any `gcloud builds submit --config=./builds/.../deploy-script.yaml`
-   or `.../destroy-script.yaml` command unless the user has explicitly
-   asked to provision or tear down GCP infrastructure.
-2. Do not put a real GCP project ID, service account email, or private key
+1. Do not run an infrastructure `deploy-script.yaml` or
+   `destroy-script.yaml` command (e.g. under `builds/infra/`) unless the
+   user has explicitly asked to provision or tear down GCP
+   infrastructure, and has confirmed the target project.
+2. Do not run an application `deploy-script.yaml` command (e.g. under
+   `builds/apps/`) unless the user has explicitly asked to deploy
+   application services, and has confirmed the target project.
+3. Do not put a real GCP project ID, service account email, or private key
    into a `.tfvars`/`.env` file, commit, or PR description.
-3. Do not copy the open (`0.0.0.0/0`) firewall rules from
+4. Do not copy the open (`0.0.0.0/0`) firewall rules from
    `pre-config.tfvars` into a new environment without the user confirming
    that's intended.

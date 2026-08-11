@@ -26,9 +26,12 @@ has two stages, per `azure/README.md`:
 
 ## Build & Test Commands
 
-There is no automated test suite here — validation is done by planning and
-applying Terraform, then exercising the deployed services with the Postman
-collection. Run these from `azure/terraform-scripts/<stage>/`:
+There is no automated test suite here. `terraform validate` and
+`terraform plan` are safe, read-only validation steps. `terraform apply`
+changes real cloud resources and requires explicit user approval before
+running — it is not a routine validation step. Once applied, exercise the
+deployed services with the Postman collection. Run these from
+`azure/terraform-scripts/<stage>/`:
 
 ```bash
 # One-time: Terraform state storage
@@ -42,8 +45,12 @@ terraform apply -var="subscription_id=your-subscription-id"
 # Core infra: AKS, network, bastion, Postgres
 cd terraform-scripts/infra
 terraform init
-terraform plan -var="subscription_id=your-subscription-id" -var="bastion_admin_password=your-password" -var="ssh_public_key=your-ssh-public-key"
-terraform apply -var="subscription_id=your-subscription-id" -var="bastion_admin_password=your-password" -var="ssh_public_key=your-ssh-public-key"
+export TF_VAR_subscription_id="your-subscription-id"
+export TF_VAR_bastion_admin_password="<load from a secret manager, never a literal>"
+export TF_VAR_ssh_public_key="your-ssh-public-key"
+terraform plan
+# terraform apply changes real cloud resources — only run after explicit user approval:
+terraform apply
 ```
 
 Tear-down (destructive — see caution below):
@@ -68,9 +75,14 @@ configured via `az aks get-credentials`.
   `certify.properties`, `mimoto-default.properties`) hold application
   config applied during service setup — the README's step-by-step guide
   edits these when wiring up DID/credential-schema IDs.
-- Terraform variables are passed on the command line via `-var=...` flags
-  (see Build & Test Commands above) rather than a checked-in `.tfvars`
-  file — there is no `terraform.tfvars` in this folder.
+- Terraform variables are passed on the command line, either via
+  `-var=...` flags or `TF_VAR_*` environment variables (see Build & Test
+  Commands above), rather than a checked-in `.tfvars` file — there is no
+  `terraform.tfvars` in this folder. Use `-var=...` only for non-sensitive
+  values; pass sensitive values like `bastion_admin_password` via
+  `TF_VAR_*` or an approved secret manager, never as a literal `-var=...`
+  argument (it would be exposed via shell history, process listings, and
+  CI logs).
 
 ## Project Structure Notes
 

@@ -39,11 +39,12 @@ own (CDK synth/deploy, `terraform plan`/`apply`, or `gcloud builds submit`)
 
 ## Configuration
 
-Configuration is per-cloud (env files, `.tfvars`, Helm values). Do not treat
-one cloud folder's config file as a template for another — the variable
-names and required values differ (e.g. AWS uses `aws/.env` with an ACM
-certificate ARN; Azure and GCP use `terraform plan -var=...` flags plus
-their own `deployments/*.env` files).
+Configuration is per-cloud. AWS uses `aws/.env`; Azure uses Terraform
+variables and deployment configuration; GCP uses Terraform tfvars
+(`terraform-variables/dev/pre-config/pre-config.tfvars`), Cloud Build
+substitutions, and deployment configuration. Do not treat one cloud
+folder's configuration as a template for another. Follow its own guide
+(`aws/AGENTS.md`, `azure/AGENTS.md`, `gcp/AGENTS.md`).
 
 ## Project Structure Notes
 
@@ -57,10 +58,14 @@ inji-infra-cloud/
 
 A few things worth knowing before you touch files:
 
-- `aws/helm/**`, and the vendored chart trees under `azure/` and `gcp/`
-  `deployments/configs`, include third-party/upstream Helm chart source
-  (e.g. Bitnami `common` library templates). Treat these as vendored —
-  don't "clean up" or restyle code you didn't author there.
+- `aws/helm/**` contains vendored chart source, including third-party
+  Bitnami `common` templates. Treat that chart tree as vendored — don't
+  "clean up" or restyle code you didn't author there.
+- `azure/deployments/configs/` and `gcp/deployments/configs/` are
+  **not** vendored chart trees — they hold this repo's own service
+  configuration (Helm `values.yaml`, ingress manifests, `.env` files).
+  Edit them freely when the task calls for a deployment configuration
+  change.
 - `aws/inji-certify-aws-automation/` is a **plain subdirectory** with its
   own `package.json`/`cdk.json`, not a git submodule — it is a second,
   separate CDK app nested inside `aws/`.
@@ -72,8 +77,10 @@ A few things worth knowing before you touch files:
 1. Work inside exactly one cloud folder (`aws/`, `azure/`, or `gcp/`) at a
    time — cross-cloud changes in one PR make review harder and are not the
    norm in this repo's history.
-2. Read that folder's README and AGENTS.md fully before changing
-   Terraform/CDK code — these scripts provision real cloud resources.
+2. Read that folder's README and AGENTS.md fully before changing any
+   file inside it — Terraform/CDK code, Helm charts, shell scripts,
+   Cloud Build YAML, values, and documentation alike support workflows
+   that provision real cloud resources.
 3. There is no CI in this repository. Validate your own changes locally
    (`terraform plan`, `cdk synth`, `helm template`, etc. as applicable)
    before opening a PR — nothing else will catch mistakes.
